@@ -1,0 +1,11 @@
+[package]
+name = "lohr"
+version = "0.1.0"
+authors = ["Antoine Martin <antoine@alarsyo.net>"]
+edition = "2018"
+license = "Apache-2.0 OR MIT"
+description = "A Git mirroring daemon"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
