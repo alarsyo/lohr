@@ -159,6 +159,10 @@ impl Job {
             self.update_repo()?;
         }
 
-        self.update_mirrors()
+        self.update_mirrors(config)?;
+
+        info!("Done processing job {}!", self.repo.full_name);
+
+        Ok(())
     }
 }
