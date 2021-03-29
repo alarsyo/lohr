@@ -21,6 +21,68 @@ file at the repo root.
 This is a very destructive process: anything removed from the single source of
 truth is effectively removed from any mirror as well.
 
+** Setup
+
+*** Quickstart
+
+Setting up =lohr= should be quite simple:
+
+1. Create a =Rocket.toml= file and [[https://rocket.rs/v0.4/guide/configuration/][add your configuration]].
+
+2. Run =lohr=:
+
+   #+begin_src sh
+   $ cargo run # or `cargo run --release` for production usage
+   #+end_src
+
+3. Configure your favorite git server to send a webhook to =lohr='s address on
+   every push event.
+
+   I used [[https://docs.gitea.io/en-us/webhooks/][Gitea's webhooks format]], but I *think* they're similar to GitHub and
+   GitLab's webhooks, so these should work too! (If they don't, *please* file an
+   issue!)
+
+4. Add a =.lohr= file containing the remotes you want to mirror this repo to:
+
+   #+begin_example
+   git@github.com:you/your_repo
+   #+end_example
+
+   and push it. That's it! =lohr= is mirroring your repo now.
+
+*** Configuration
+
+**** Home directory
+
+=lohr= needs a place to clone repos and store its data. By default, it's the
+current directory, but you can set the =LOHR_HOME= environment variable to
+customize it.
+
+**** Extra remote configuration
+
+=lohr= looks for a =lohr-config.yaml= file in its =LOHR_HOME= directory. This
+file takes the following format:
+
+#+begin_src yaml
+default_remotes:
+  - "git@github:user"
+  - "git@gitlab:user"
+
+additional_remotes:
+  - "git@git.sr.ht:~user"
+#+end_src
+
+- ~default_remotes~ is a list of remotes to use if no ~.lohr~ file is found in a
+  repository.
+- ~additional_remotes~ is a list of remotes to add in any case, whether the
+  original set of remotes is set via ~default_remotes~ or via a =.lohr= file.
+
+Both settings take as input a list of "stems", i.e. incomplete remote addresses,
+to which the repo's name will be appended (so for example, if my
+~default_remotes~ contains ~git@github.com:alarsyo~, and a push event webhook
+is received for repository =git@gitlab.com:some/long/path/repo_name=, then the
+mirror destination will be =git@github.com:alarsyo/repo_name=.
+
 ** Contributing
 
 I accept patches anywhere! Feel free to [[https://github.com/alarsyo/lohr/pulls][open a GitHub Pull Request]], [[https://gitlab.com/alarsyo/lohr/-/merge_requests][a GitLab
