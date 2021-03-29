@@ -34,7 +34,10 @@
         };
       in
       {
-        defaultPackage = naersk-lib.buildPackage ./.;
+        defaultPackage = naersk-lib.buildPackage {
+          src = ./.;
+          pname = "lohr";
+        };
 
         defaultApp = flake-utils.lib.mkApp {
           drv = self.defaultPackage."${system}";
