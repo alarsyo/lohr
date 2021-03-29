@@ -1,6 +1,9 @@
 {
   inputs = {
-    naersk.url = "github:nmattia/naersk/master";
+    naersk = {
+      url = "github:nmattia/naersk/master";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     mozillapkgs = {
       url = "github:mozilla/nixpkgs-mozilla";
       flake = false;
