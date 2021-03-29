@@ -32,3 +32,10 @@ I was looking for a cool name, and thought about the Magic Mirror in Snow White.
 Some *[[https://en.wikipedia.org/wiki/Magic_Mirror_(Snow_White)][furious wikipedia searching]]* later, I found that the Magic Mirror was
 probably inspired by [[http://spessartmuseum.de/seiten/schneewittchen_engl.html][the Talking Mirror in Lohr am Main]]. That's it, that's the
 story.
+
+** License
+
+=lohr= is distributed under the terms of both the MIT license and the Apache
+License (Version 2.0).
+
+See [[file:LICENSE-APACHE][LICENSE-APACHE]] and [[file:LICENSE-MIT][LICENSE-MIT]] for details.
