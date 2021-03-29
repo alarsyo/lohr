@@ -150,7 +150,6 @@ impl Job {
 
     pub(crate) fn run(&mut self, homedir: &Path) -> anyhow::Result<()> {
         let local_path = homedir.join(&self.repo.full_name);
-        println!("{}", local_path.display());
         assert!(local_path.is_absolute());
         self.local_path = Some(local_path);
 
