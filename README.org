@@ -1,0 +1,22 @@
+#+title: lohr
+
+=lohr= is a Git mirroring tool.
+
+I created it to solve a simple problem I had: I host my own git server at
+[[https://git.alarsyo.net]], but want to mirror my public projects to GitHub /
+GitLab, for backup and visibility purposes.
+
+GitLab has a mirroring setting, but it doesn't allow for multiple mirrors, as
+far as I know. I also wanted my instance to be the single source of truth.
+
+* How it works
+
+Gitea is setup to send webhooks to my =lohr= server on every push update. When
+=lohr= receives a push, it clones the concerned repository, or updates it if
+already cloned. Then it pushes the update to *all remotes listed* in the [[file:.lohr][.lohr]]
+file at the repo root.
+
+** Destructive
+
+This is a very destructive process: anything removed from the single source of
+truth is effectively removed from any mirror as well.
