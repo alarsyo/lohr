@@ -1,0 +1,10 @@
+repos:
+- repo: 'local'
+  hooks:
+  - id: 'nixpkgs-fmt'
+    name: 'nixpkgs-fmt'
+    description: 'Format nix code with nixpkgs-fmt'
+    entry: 'nixpkgs-fmt'
+    language: 'system'
+    files: '\.nix$'
+    always_run: true
