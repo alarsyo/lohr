@@ -21,6 +21,11 @@ file at the repo root.
 This is a very destructive process: anything removed from the single source of
 truth is effectively removed from any mirror as well.
 
+** Contributing
+
+I accept patches anywhere! Feel free to [[https://github.com/alarsyo/lohr/pulls][open a GitHub Pull Request]], [[https://gitlab.com/alarsyo/lohr/-/merge_requests][a GitLab
+Merge Request]], or [[https://lists.sr.ht/~alarsyo/lohr-dev][send me a patch by email]]!
+
 ** Why lohr?
 
 I was looking for a cool name, and thought about the Magic Mirror in Snow White.
