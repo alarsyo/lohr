@@ -154,7 +154,7 @@ impl Job {
 
     fn update_mirrors(&self, config: &GlobalSettings) -> anyhow::Result<()> {
         for remote in &self.get_remotes(config)? {
-            info!("Updating mirror {}:{}...", remote, self.repo.full_name);
+            info!("Updating mirror {}...", remote);
 
             let output = Command::new("git")
                 .arg("-C")
