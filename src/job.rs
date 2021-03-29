@@ -17,8 +17,6 @@ pub(crate) struct Job {
 // TODO: implement git operations with git2-rs where possible
 
 impl Job {
-    const REMOTES: &'static [&'static str] = &["github", "gitlab"];
-
     pub(crate) fn new(repo: Repository) -> Self {
         Self {
             repo,
@@ -93,8 +91,34 @@ impl Job {
         Ok(())
     }
 
+    fn get_remotes(&self) -> anyhow::Result<String> {
+        let output = Command::new("git")
+            .arg("-C")
+            .arg(format!("{}", self.local_path.as_ref().unwrap().display()))
+            .arg("show")
+            .arg("HEAD:.lohr")
+            .output()?;
+
+        if !output.status.success() {
+            let error = str::from_utf8(&output.stderr)?;
+            let code = output
+                .status
+                .code()
+                .unwrap_or_else(|| output.status.signal().unwrap());
+
+            bail!(
+                "couldn't read .lohr file from repo {}: exit code {}, stderr:\n{}",
+                self.repo.full_name,
+                code,
+                error
+            );
+        }
+
+        Ok(String::from_utf8(output.stdout)?)
+    }
+
     fn update_mirrors(&self) -> anyhow::Result<()> {
-        for remote in Self::REMOTES.iter() {
+        for remote in self.get_remotes()?.lines() {
             info!("Updating mirror {}:{}...", remote, self.repo.full_name);
 
             let output = Command::new("git")
@@ -102,7 +126,7 @@ impl Job {
                 .arg(format!("{}", self.local_path.as_ref().unwrap().display()))
                 .arg("push")
                 .arg("--mirror")
-                .arg(format!("git@{}.com:{}", remote, self.repo.full_name))
+                .arg(remote)
                 .output()?;
 
             if !output.status.success() {
@@ -113,7 +137,8 @@ impl Job {
                     .unwrap_or_else(|| output.status.signal().unwrap());
 
                 bail!(
-                    "couldn't update origin remote: exit code {}, stderr:\n{}",
+                    "couldn't update remote {}: exit code {}, stderr:\n{}",
+                    remote,
                     code,
                     error
                 );
