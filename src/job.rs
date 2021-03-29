@@ -8,6 +8,7 @@ use anyhow::bail;
 use log::info;
 
 use crate::gitea::Repository;
+use crate::settings::{GlobalSettings, RepoUrl};
 
 pub(crate) struct Job {
     repo: Repository,
@@ -91,7 +92,9 @@ impl Job {
         Ok(())
     }
 
-    fn get_remotes(&self) -> anyhow::Result<String> {
+    /// Can return Ok(None) if the .lohr file didn't exist, but no significant error occured
+    fn read_remotes_from_lohr_file(&self) -> anyhow::Result<Option<Vec<RepoUrl>>> {
+        // try to read .lohr file from bare repo (hence the git show sorcery)
         let output = Command::new("git")
             .arg("-C")
             .arg(format!("{}", self.local_path.as_ref().unwrap().display()))
@@ -101,24 +104,56 @@ impl Job {
 
         if !output.status.success() {
             let error = str::from_utf8(&output.stderr)?;
-            let code = output
-                .status
-                .code()
-                .unwrap_or_else(|| output.status.signal().unwrap());
 
-            bail!(
-                "couldn't read .lohr file from repo {}: exit code {}, stderr:\n{}",
-                self.repo.full_name,
-                code,
-                error
-            );
+            // this error case is okay, .lohr just doesn't exist
+            if error.contains("does not exist in 'HEAD'") {
+                return Ok(None);
+            } else {
+                let code = output
+                    .status
+                    .code()
+                    .unwrap_or_else(|| output.status.signal().unwrap());
+
+                bail!(
+                    "couldn't read .lohr file from repo {}: exit code {}, stderr:\n{}",
+                    self.repo.full_name,
+                    code,
+                    error
+                );
+            }
         }
 
-        Ok(String::from_utf8(output.stdout)?)
+        let output = String::from_utf8(output.stdout)?;
+
+        Ok(Some(output.lines().map(String::from).collect()))
     }
 
-    fn update_mirrors(&self) -> anyhow::Result<()> {
-        for remote in self.get_remotes()?.lines() {
+    fn get_remotes(&self, config: &GlobalSettings) -> anyhow::Result<Vec<RepoUrl>> {
+        let local_path = self.local_path.as_ref().unwrap();
+
+        let stem_to_repo = |stem: &RepoUrl| -> RepoUrl {
+            let mut res = stem.clone();
+            if !res.ends_with('/') {
+                res.push('/');
+            };
+            res.push_str(local_path.file_name().unwrap().to_str().unwrap());
+            res
+        };
+
+        // use either .lohr file or default remotes from config
+        let mut remotes = match self.read_remotes_from_lohr_file()? {
+            Some(remotes) if !remotes.is_empty() => remotes,
+            _ => config.default_remotes.iter().map(stem_to_repo).collect(),
+        };
+
+        // additional remotes
+        remotes.append(&mut config.additional_remotes.iter().map(stem_to_repo).collect());
+
+        Ok(remotes)
+    }
+
+    fn update_mirrors(&self, config: &GlobalSettings) -> anyhow::Result<()> {
+        for remote in &self.get_remotes(config)? {
             info!("Updating mirror {}:{}...", remote, self.repo.full_name);
 
             let output = Command::new("git")
@@ -148,7 +183,7 @@ impl Job {
         Ok(())
     }
 
-    pub(crate) fn run(&mut self, homedir: &Path) -> anyhow::Result<()> {
+    pub(crate) fn run(&mut self, homedir: &Path, config: &GlobalSettings) -> anyhow::Result<()> {
         let local_path = homedir.join(&self.repo.full_name);
         assert!(local_path.is_absolute());
         self.local_path = Some(local_path);

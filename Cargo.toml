@@ -14,3 +14,4 @@ log = "0.4.14"
 rocket = "0.4.7"
 rocket_contrib = { version = "0.4.7", features = [ "json" ] }
 serde = { version = "1.0.125", features = [ "derive" ] }
+serde_yaml = "0.8.17"
