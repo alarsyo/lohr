@@ -73,8 +73,9 @@ variable.
 
 **** Extra remote configuration
 
-=lohr= looks for a =lohr-config.yaml= file in its =LOHR_HOME= directory. This
-file takes the following format:
+=lohr= looks for a =lohr-config.yaml= file in its =LOHR_HOME= directory. The
+=LOHR_CONFIG= variable takes precedence over looking into the state directory.
+This file takes the following format:
 
 #+begin_src yaml
 default_remotes:
@@ -83,12 +84,18 @@ default_remotes:
 
 additional_remotes:
   - "git@git.sr.ht:~user"
+
+blacklist:
+  - "private-.*"
 #+end_src
 
 - ~default_remotes~ is a list of remotes to use if no ~.lohr~ file is found in a
   repository.
 - ~additional_remotes~ is a list of remotes to add in any case, whether the
   original set of remotes is set via ~default_remotes~ or via a =.lohr= file.
+- ~blacklist~ is a list of regular expressions to match against the full
+  repository names. Any that matches will not be mirrored, even if it contains a
+  `.lohr` file.
 
 Both settings take as input a list of "stems", i.e. incomplete remote addresses,
 to which the repo's name will be appended (so for example, if my
