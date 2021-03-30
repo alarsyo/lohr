@@ -73,8 +73,12 @@ variable.
 
 **** Extra remote configuration
 
-=lohr= looks for a =lohr-config.yaml= file in its =LOHR_HOME= directory. The
-=LOHR_CONFIG= variable takes precedence over looking into the state directory.
+You can provide =lohr= with a YAML file containing additional configuration. You
+can pass its path to the =--config= flag when launching =lohr=. If no
+configuration is provided via a CLI flag, =lohr= will check the =LOHR_CONFIG=
+environment variable. If the environment variable isn't set either, it will
+check in =LOHR_HOME= is a =lohr-config.yaml= file exists, and try to load it.
+
 This file takes the following format:
 
 #+begin_src yaml
