@@ -10,4 +10,8 @@ pub(crate) struct GlobalSettings {
     /// List of remote stems to use for every repository
     #[serde(default)]
     pub additional_remotes: Vec<RepoUrl>,
+    /// List of regexes, if a repository's name matches any of the, it is not mirrored by `lohr`
+    /// even if it contains a `.lorh` file.
+    #[serde(with = "serde_regex")]
+    pub blacklist: Vec<regex::Regex>,
 }
