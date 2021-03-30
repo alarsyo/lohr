@@ -190,13 +190,6 @@ impl Job {
     }
 
     pub(crate) fn run(&mut self, homedir: &Path, config: &GlobalSettings) -> anyhow::Result<()> {
-        if config
-            .blacklist
-            .iter()
-            .any(|re| re.is_match(&self.repo.full_name))
-        {
-            return Ok(());
-        }
         let local_path = homedir.join(&self.repo.full_name);
         assert!(local_path.is_absolute());
         self.local_path = Some(local_path);

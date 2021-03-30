@@ -29,7 +29,19 @@ struct JobSender(Mutex<Sender<Job>>);
 struct Secret(String);
 
 #[post("/", data = "<payload>")]
-fn gitea_webhook(payload: SignedJson<GiteaWebHook>, sender: State<JobSender>) -> Status {
+fn gitea_webhook(
+    payload: SignedJson<GiteaWebHook>,
+    sender: State<JobSender>,
+    config: State<GlobalSettings>,
+) -> Status {
+    if config
+        .blacklist
+        .iter()
+        .any(|re| re.is_match(&payload.repository.full_name))
+    {
+        return Status::Ok;
+    }
+
     {
         let sender = sender.0.lock().unwrap();
         let repo = &payload.repository;
@@ -74,6 +86,7 @@ fn main() -> anyhow::Result<()> {
         .expect("please provide a secret, otherwise anyone can send you a malicious webhook");
 
     let config = parse_config(homedir.clone())?;
+    let config_state = config.clone();
 
     thread::spawn(move || {
         repo_updater(receiver, homedir, config);
@@ -83,6 +96,7 @@ fn main() -> anyhow::Result<()> {
         .mount("/", routes![gitea_webhook])
         .manage(JobSender(Mutex::new(sender)))
         .manage(Secret(secret))
+        .manage(config_state)
         .launch();
 
     Ok(())

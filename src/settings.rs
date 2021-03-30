@@ -2,7 +2,7 @@ use serde::Deserialize;
 
 pub(crate) type RepoUrl = String; // FIXME: probably needs a better type than this
 
-#[derive(Default, Deserialize)]
+#[derive(Clone, Default, Deserialize)]
 pub(crate) struct GlobalSettings {
     /// List of remote stems to use when no `.lohr` file is found
     #[serde(default)]
