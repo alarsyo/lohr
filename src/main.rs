@@ -11,7 +11,7 @@ use std::thread;
 
 use anyhow::Context;
 use clap::{App, Arg};
-use log::error;
+use log::{error, info};
 use rocket::{http::Status, post, routes, State};
 
 mod gitea;
@@ -40,6 +40,10 @@ fn gitea_webhook(
         .iter()
         .any(|re| re.is_match(&payload.repository.full_name))
     {
+        info!(
+            "Ignoring webhook for repo {} which is blacklisted",
+            payload.repository.full_name
+        );
         return Status::Ok;
     }
 
