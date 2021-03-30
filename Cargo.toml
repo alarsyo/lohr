@@ -12,15 +12,22 @@ repository = "https://github.com/alarsyo/lohr"
 
 [dependencies]
 anyhow = "1.0.40"
-clap = "2.33.3"
 hex = "0.4.3"
 hmac = "0.10.1"
 log = "0.4.14"
 regex = "1"
-rocket = "0.4.7"
-rocket_contrib = { version = "0.4.7", features = [ "json" ] }
 serde = { version = "1.0.125", features = [ "derive" ] }
 serde_json = "1.0.64"
 serde_regex = "1.1.0"
 serde_yaml = "0.8.17"
 sha2 = "0.9.3"
+
+[dependencies.rocket]
+version = "0.4.7"
+# don't need private-cookies
+default-features = false
+
+[dependencies.clap]
+version = "2.33.3"
+# no need for suggestions or color with only one argument
+default-features = false
