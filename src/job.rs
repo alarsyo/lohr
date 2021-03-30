@@ -125,7 +125,13 @@ impl Job {
 
         let output = String::from_utf8(output.stdout)?;
 
-        Ok(Some(output.lines().map(String::from).collect()))
+        Ok(Some(
+            output
+                .lines()
+                .map(String::from)
+                .filter(|s| !s.is_empty())
+                .collect(),
+        ))
     }
 
     fn get_remotes(&self, config: &GlobalSettings) -> anyhow::Result<Vec<RepoUrl>> {
