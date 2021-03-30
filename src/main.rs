@@ -52,6 +52,9 @@ fn repo_updater(rx: Receiver<Job>, homedir: PathBuf, config: GlobalSettings) {
 fn parse_config(mut path: PathBuf) -> anyhow::Result<GlobalSettings> {
     path.push("lohr-config");
     path.set_extension("yaml");
+    let path = env::var("LOHR_CONFIG")
+        .map(Into::into)
+        .unwrap_or_else(|_| path);
     let config = if let Ok(file) = File::open(path.as_path()) {
         serde_yaml::from_reader(file)?
     } else {
