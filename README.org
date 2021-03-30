@@ -66,6 +66,11 @@ Setting up =lohr= should be quite simple:
 current directory, but you can set the =LOHR_HOME= environment variable to
 customize it.
 
+**** Shared secret
+
+As shown in the quickstart guide, you *must* set the =LOHR_SECRET= environment
+variable.
+
 **** Extra remote configuration
 
 =lohr= looks for a =lohr-config.yaml= file in its =LOHR_HOME= directory. This
