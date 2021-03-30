@@ -12,6 +12,7 @@ repository = "https://github.com/alarsyo/lohr"
 
 [dependencies]
 anyhow = "1.0.40"
+clap = "2.33.3"
 hex = "0.4.3"
 hmac = "0.10.1"
 log = "0.4.14"

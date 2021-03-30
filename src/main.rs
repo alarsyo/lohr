@@ -2,16 +2,17 @@
 
 use std::env;
 use std::fs::File;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::{
     mpsc::{channel, Receiver, Sender},
     Mutex,
 };
 use std::thread;
 
-use rocket::{http::Status, post, routes, State};
-
+use anyhow::Context;
+use clap::{App, Arg};
 use log::error;
+use rocket::{http::Status, post, routes, State};
 
 mod gitea;
 use gitea::GiteaWebHook;
@@ -61,21 +62,46 @@ fn repo_updater(rx: Receiver<Job>, homedir: PathBuf, config: GlobalSettings) {
     }
 }
 
-fn parse_config(mut path: PathBuf) -> anyhow::Result<GlobalSettings> {
-    path.push("lohr-config");
-    path.set_extension("yaml");
-    let path = env::var("LOHR_CONFIG")
-        .map(Into::into)
-        .unwrap_or_else(|_| path);
-    let config = if let Ok(file) = File::open(path.as_path()) {
-        serde_yaml::from_reader(file)?
-    } else {
-        Default::default()
+fn parse_config(home: &Path, flags: &clap::ArgMatches) -> anyhow::Result<GlobalSettings> {
+    // prioritize CLI flag, then env var
+    let config_path = flags.value_of("config").map(PathBuf::from);
+    let config_path = config_path.or_else(|| env::var("LOHR_CONFIG").map(PathBuf::from).ok());
+
+    let file = match config_path {
+        Some(config_path) => File::open(&config_path).with_context(|| {
+            format!(
+                "could not open provided configuration file at {}",
+                config_path.display()
+            )
+        })?,
+        None => {
+            // check if file exists in lohr home
+            let config_path = home.join("lohr-config.yaml");
+            if !config_path.is_file() {
+                return Ok(Default::default());
+            }
+
+            File::open(config_path).context("failed to open configuration file in LOHR_HOME")?
+        }
     };
-    Ok(config)
+
+    serde_yaml::from_reader(file).context("could not parse configuration file")
 }
 
 fn main() -> anyhow::Result<()> {
+    let matches = App::new("lohr")
+        .version("0.3.0")
+        .about("Git mirroring daemon")
+        .arg(
+            Arg::with_name("config")
+                .short("c")
+                .long("config")
+                .value_name("FILE")
+                .help("Use a custom config file")
+                .takes_value(true),
+        )
+        .get_matches();
+
     let (sender, receiver) = channel();
 
     let homedir = env::var("LOHR_HOME").unwrap_or_else(|_| "./".to_string());
@@ -85,7 +111,7 @@ fn main() -> anyhow::Result<()> {
     let secret = env::var("LOHR_SECRET")
         .expect("please provide a secret, otherwise anyone can send you a malicious webhook");
 
-    let config = parse_config(homedir.clone())?;
+    let config = parse_config(&homedir, &matches)?;
     let config_state = config.clone();
 
     thread::spawn(move || {
