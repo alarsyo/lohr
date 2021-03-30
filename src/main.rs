@@ -30,8 +30,6 @@ struct Secret(String);
 
 #[post("/", data = "<payload>")]
 fn gitea_webhook(payload: SignedJson<GiteaWebHook>, sender: State<JobSender>) -> Status {
-    // TODO: validate Gitea signature
-
     {
         let sender = sender.0.lock().unwrap();
         let repo = &payload.repository;
