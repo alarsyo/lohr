@@ -1,5 +1,5 @@
 use std::{
-    io::{Read, Write},
+    io::Read,
     ops::{Deref, DerefMut},
 };
 
