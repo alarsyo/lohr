@@ -37,6 +37,13 @@
         defaultPackage = naersk-lib.buildPackage {
           src = ./.;
           pname = "lohr";
+
+          meta = with pkgs.lib; {
+            description = "A Git mirroring tool";
+            homepage = "https://github.com/alarsyo/lohr";
+            license = with licenses; [ mit asl20 ];
+            platforms = platforms.unix;
+          };
         };
 
         defaultApp = flake-utils.lib.mkApp {
