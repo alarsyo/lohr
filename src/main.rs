@@ -10,7 +10,6 @@ use std::sync::{
 use std::thread;
 
 use rocket::{http::Status, post, routes, State};
-use rocket_contrib::json::Json;
 
 use log::error;
 
@@ -23,10 +22,14 @@ use job::Job;
 mod settings;
 use settings::GlobalSettings;
 
+mod signature;
+use signature::SignedJson;
+
 struct JobSender(Mutex<Sender<Job>>);
+struct Secret(String);
 
 #[post("/", data = "<payload>")]
-fn gitea_webhook(payload: Json<GiteaWebHook>, sender: State<JobSender>) -> Status {
+fn gitea_webhook(payload: SignedJson<GiteaWebHook>, sender: State<JobSender>) -> Status {
     // TODO: validate Gitea signature
 
     {
@@ -66,6 +69,9 @@ fn main() -> anyhow::Result<()> {
     let homedir: PathBuf = homedir.into();
     let homedir = homedir.canonicalize().expect("LOHR_HOME isn't valid!");
 
+    let secret = env::var("LOHR_SECRET")
+        .expect("please provide a secret, otherwise anyone can send you a malicious webhook");
+
     let config = parse_config(homedir.clone())?;
 
     thread::spawn(move || {
@@ -75,6 +81,7 @@ fn main() -> anyhow::Result<()> {
     rocket::ignite()
         .mount("/", routes![gitea_webhook])
         .manage(JobSender(Mutex::new(sender)))
+        .manage(Secret(secret))
         .launch();
 
     Ok(())
