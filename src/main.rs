@@ -94,7 +94,7 @@ fn parse_config(home: &Path, flags: &clap::ArgMatches) -> anyhow::Result<GlobalS
 
 fn main() -> anyhow::Result<()> {
     let matches = App::new("lohr")
-        .version("0.3.1")
+        .version("0.3.2")
         .about("Git mirroring daemon")
         .arg(
             Arg::with_name("config")
