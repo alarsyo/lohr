@@ -10,7 +10,7 @@ use std::sync::{
 use std::thread;
 
 use anyhow::Context;
-use clap::{App, Arg, crate_version};
+use clap::{crate_version, App, Arg};
 use log::{error, info};
 use rocket::{http::Status, post, routes, State};
 
