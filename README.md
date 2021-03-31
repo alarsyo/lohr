@@ -26,14 +26,7 @@ truth is effectively removed from any mirror as well.
 `lohr` is [published on crates.io](https://crates.io/crates/lohr), so you can
 install it with `cargo install`:
 
-    $ cargo +nightly install lohr
-
-We currently require a nightly compiler because
-[Rocket](https://github.com/SergioBenitez/Rocket) needs one to compile (a 0.5.0
-which compiles on stable Rust is in the making, stay tuned!). You can install a
-nightly toolchain with the following command:
-
-    $ rustup install nightly
+    $ cargo install lohr
 
 ## Setup
 
