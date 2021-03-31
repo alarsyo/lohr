@@ -23,7 +23,7 @@ serde_yaml = "0.8.17"
 sha2 = "0.9.3"
 
 [dependencies.rocket]
-version = "0.4.7"
+version = "0.5.0-dev"
 # don't need private-cookies
 default-features = false
 
@@ -31,3 +31,6 @@ default-features = false
 version = "2.33.3"
 # no need for suggestions or color with only one argument
 default-features = false
+
+[patch.crates-io]
+rocket = { git = "https://github.com/SergioBenitez/Rocket", rev = "2893ce754d6535e0a752586e60d7e292343016c0" }

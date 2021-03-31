@@ -1,5 +1,3 @@
-#![feature(proc_macro_hygiene, decl_macro)]
-
 use std::env;
 use std::fs::File;
 use std::path::{Path, PathBuf};
@@ -92,7 +90,8 @@ fn parse_config(home: &Path, flags: &clap::ArgMatches) -> anyhow::Result<GlobalS
     serde_yaml::from_reader(file).context("could not parse configuration file")
 }
 
-fn main() -> anyhow::Result<()> {
+#[rocket::main]
+async fn main() -> anyhow::Result<()> {
     let matches = App::new("lohr")
         .version(crate_version!())
         .about("Git mirroring daemon")
@@ -127,7 +126,8 @@ fn main() -> anyhow::Result<()> {
         .manage(JobSender(Mutex::new(sender)))
         .manage(Secret(secret))
         .manage(config_state)
-        .launch();
+        .launch()
+        .await?;
 
     Ok(())
 }

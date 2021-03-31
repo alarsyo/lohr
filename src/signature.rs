@@ -1,20 +1,17 @@
 use std::{
-    io::Read,
+    io,
     ops::{Deref, DerefMut},
 };
 
 use rocket::{
-    data::{FromData, Outcome},
+    data::{ByteUnit, FromData, Outcome},
     http::ContentType,
     State,
 };
-use rocket::{
-    data::{Transform, Transformed},
-    http::Status,
-};
+use rocket::{http::Status, local_cache};
 use rocket::{Data, Request};
 
-use anyhow::anyhow;
+use anyhow::{anyhow, Context};
 use serde::Deserialize;
 
 use crate::Secret;
@@ -53,37 +50,29 @@ impl<T> DerefMut for SignedJson<T> {
     }
 }
 
-const LIMIT: u64 = 1 << 20;
+const LIMIT: ByteUnit = ByteUnit::Mebibyte(1);
+
+impl<'r, T: Deserialize<'r>> SignedJson<T> {
+    fn from_str(s: &'r str) -> anyhow::Result<Self> {
+        serde_json::from_str(s)
+            .map(SignedJson)
+            .context("could not parse json")
+    }
+}
 
 // This is a one to one implementation of request_contrib::Json's FromData, but with HMAC
 // validation.
 //
 // Tracking issue for chaining Data guards to avoid this:
 // https://github.com/SergioBenitez/Rocket/issues/775
-impl<'a, T> FromData<'a> for SignedJson<T>
+#[rocket::async_trait]
+impl<'r, T> FromData<'r> for SignedJson<T>
 where
-    T: Deserialize<'a>,
+    T: Deserialize<'r>,
 {
     type Error = anyhow::Error;
-    type Owned = String;
-    type Borrowed = str;
 
-    fn transform(
-        request: &Request,
-        data: Data,
-    ) -> rocket::data::Transform<Outcome<Self::Owned, Self::Error>> {
-        let size_limit = request.limits().get("json").unwrap_or(LIMIT);
-        let mut s = String::with_capacity(512);
-        match data.open().take(size_limit).read_to_string(&mut s) {
-            Ok(_) => Transform::Borrowed(Outcome::Success(s)),
-            Err(e) => Transform::Borrowed(Outcome::Failure((
-                Status::BadRequest,
-                anyhow!("couldn't read json: {}", e),
-            ))),
-        }
-    }
-
-    fn from_data(request: &Request, o: Transformed<'a, Self>) -> Outcome<Self, Self::Error> {
+    async fn from_data(request: &'r Request<'_>, data: Data) -> Outcome<Self, Self::Error> {
         let json_ct = ContentType::new("application", "json");
         if request.content_type() != Some(&json_ct) {
             return Outcome::Failure((Status::BadRequest, anyhow!("wrong content type")));
@@ -97,26 +86,31 @@ where
             ));
         }
 
+        let size_limit = request.limits().get("json").unwrap_or(LIMIT);
+        let content = match data.open(size_limit).into_string().await {
+            Ok(s) if s.is_complete() => s.into_inner(),
+            Ok(_) => {
+                let eof = io::ErrorKind::UnexpectedEof;
+                return Outcome::Failure((
+                    Status::PayloadTooLarge,
+                    io::Error::new(eof, "data limit exceeded").into(),
+                ));
+            }
+            Err(e) => return Outcome::Failure((Status::BadRequest, e.into())),
+        };
+
         let signature = signatures[0];
+        let secret = request.guard::<State<Secret>>().await.unwrap();
 
-        let content = o.borrowed()?;
-
-        let secret = request.guard::<State<Secret>>().unwrap();
-
-        if !validate_signature(&secret.0, &signature, content) {
+        if !validate_signature(&secret.0, &signature, &content) {
             return Outcome::Failure((Status::BadRequest, anyhow!("couldn't verify signature")));
         }
 
-        let content = match serde_json::from_str(content) {
-            Ok(content) => content,
-            Err(e) => {
-                return Outcome::Failure((
-                    Status::BadRequest,
-                    anyhow!("couldn't parse json: {}", e),
-                ))
-            }
+        let content = match Self::from_str(local_cache!(request, content)) {
+            Ok(content) => Outcome::Success(content),
+            Err(e) => Outcome::Failure((Status::BadRequest, e)),
         };
 
-        Outcome::Success(SignedJson(content))
+        content
     }
 }
