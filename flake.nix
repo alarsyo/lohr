@@ -1,13 +1,5 @@
 {
   inputs = {
-    naersk = {
-      url = "github:nmattia/naersk/master";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    mozillapkgs = {
-      url = "github:mozilla/nixpkgs-mozilla";
-      flake = false;
-    };
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     flake-compat = {
@@ -16,27 +8,19 @@
     };
   };
 
-  outputs = { self, naersk, mozillapkgs, nixpkgs, flake-utils, ... }:
+  outputs = { self, nixpkgs, flake-utils, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
-
-        mozilla = pkgs.callPackage (mozillapkgs + "/package-set.nix") { };
-        rustNightly = (mozilla.rustChannelOf {
-          date = "2021-03-29";
-          channel = "nightly";
-          sha256 = "sha256-Y94CnslybZgiZlNVV6Cg0TUPV2OeDXakPev1kqdt9Kk=";
-        }).rust;
-
-        naersk-lib = pkgs.callPackage naersk {
-          cargo = rustNightly;
-          rustc = rustNightly;
-        };
       in
       {
-        defaultPackage = naersk-lib.buildPackage {
-          src = ./.;
+        defaultPackage = pkgs.rustPlatform.buildRustPackage {
           pname = "lohr";
+          version = "0.3.1";
+
+          src = ./.;
+
+          cargoSha256 = "sha256-XnBvb13Pv7bNTLCL3WV+bxRK0/uMEKA1/Bk0Tfua3Rs=";
 
           meta = with pkgs.lib; {
             description = "A Git mirroring tool";
@@ -52,10 +36,12 @@
 
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
+            cargo
+            clippy
             nixpkgs-fmt
             pre-commit
             rustPackages.clippy
-            rustNightly
+            rustc
             rustfmt
           ];
 
