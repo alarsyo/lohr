@@ -16,11 +16,11 @@
       {
         defaultPackage = pkgs.rustPlatform.buildRustPackage {
           pname = "lohr";
-          version = "0.3.1";
+          version = "0.4.0";
 
           src = ./.;
 
-          cargoSha256 = "sha256-XnBvb13Pv7bNTLCL3WV+bxRK0/uMEKA1/Bk0Tfua3Rs=";
+          cargoSha256 = "sha256-5a2mK+E6LlR5RHDAhHDvnfPNG+0JdvpnL4kuTiz7vVg=";
 
           meta = with pkgs.lib; {
             description = "A Git mirroring tool";
