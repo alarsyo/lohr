@@ -33,4 +33,4 @@ version = "2.33.3"
 default-features = false
 
 [patch.crates-io]
-rocket = { git = "https://github.com/SergioBenitez/Rocket", rev = "2893ce754d6535e0a752586e60d7e292343016c0" }
+rocket = { git = "https://github.com/SergioBenitez/Rocket", rev = "8d4d01106e2e10b08100805d40bfa19a7357e900" }
