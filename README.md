@@ -28,6 +28,10 @@ install it with `cargo install`:
 
     $ cargo install lohr
 
+Note: currently this method won't get you the latest version of `lohr`, as it
+depends on Rocket v0.5.0, which isn't released yet. Updated versions of `lohr`
+will be published on crates.io as soon as Rocket v0.5.0 releases.
+
 ## Setup
 
 ### Quickstart
