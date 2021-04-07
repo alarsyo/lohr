@@ -38,7 +38,7 @@ impl Job {
         let output = Command::new("git")
             .arg("clone")
             .arg("--mirror")
-            .arg(&self.repo.clone_url)
+            .arg(&self.repo.ssh_url)
             .arg(format!("{}", self.local_path.as_ref().unwrap().display()))
             .output()?;
 

@@ -4,7 +4,7 @@ use serde::Deserialize;
 pub(crate) struct Repository {
     pub(crate) name: String,
     pub(crate) full_name: String,
-    pub(crate) clone_url: String,
+    pub(crate) ssh_url: String,
 }
 
 #[derive(Deserialize)]
