@@ -30,8 +30,8 @@ struct Secret(String);
 #[post("/", data = "<payload>")]
 fn gitea_webhook(
     payload: SignedJson<GiteaWebHook>,
-    sender: State<JobSender>,
-    config: State<GlobalSettings>,
+    sender: &State<JobSender>,
+    config: &State<GlobalSettings>,
 ) -> Status {
     if config
         .blacklist
@@ -121,7 +121,7 @@ async fn main() -> anyhow::Result<()> {
         repo_updater(receiver, homedir, config);
     });
 
-    rocket::ignite()
+    rocket::build()
         .mount("/", routes![gitea_webhook])
         .manage(JobSender(Mutex::new(sender)))
         .manage(Secret(secret))

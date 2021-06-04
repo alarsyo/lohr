@@ -8,7 +8,7 @@ use rocket::{
     http::ContentType,
     State,
 };
-use rocket::{http::Status, local_cache};
+use rocket::{http::Status, request::local_cache};
 use rocket::{Data, Request};
 
 use anyhow::{anyhow, Context};
@@ -100,7 +100,7 @@ where
         };
 
         let signature = signatures[0];
-        let secret = request.guard::<State<Secret>>().await.unwrap();
+        let secret = request.guard::<&State<Secret>>().await.unwrap();
 
         if !validate_signature(&secret.0, &signature, &content) {
             return Outcome::Failure((Status::BadRequest, anyhow!("couldn't verify signature")));
