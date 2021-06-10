@@ -72,7 +72,7 @@ where
 {
     type Error = anyhow::Error;
 
-    async fn from_data(request: &'r Request<'_>, data: Data) -> Outcome<Self, Self::Error> {
+    async fn from_data(request: &'r Request<'_>, data: Data<'r>) -> Outcome<'r, Self> {
         let json_ct = ContentType::new("application", "json");
         if request.content_type() != Some(&json_ct) {
             return Outcome::Failure((Status::BadRequest, anyhow!("wrong content type")));
