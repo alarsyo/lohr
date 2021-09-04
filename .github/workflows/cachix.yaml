@@ -1,8 +1,10 @@
 name: "Cachix build"
 on:
   push:
-    tags:
-      - v*
+    paths:
+      - 'flake.nix'
+      - 'flake.lock'
+
 jobs:
   build:
     runs-on: ubuntu-latest
