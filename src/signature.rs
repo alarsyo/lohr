@@ -102,7 +102,7 @@ where
         let signature = signatures[0];
         let secret = request.guard::<&State<Secret>>().await.unwrap();
 
-        if !validate_signature(&secret.0, &signature, &content) {
+        if !validate_signature(&secret.0, signature, &content) {
             return Outcome::Failure((Status::BadRequest, anyhow!("couldn't verify signature")));
         }
 
