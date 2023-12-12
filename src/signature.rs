@@ -106,11 +106,9 @@ where
             return Outcome::Failure((Status::BadRequest, anyhow!("couldn't verify signature")));
         }
 
-        let content = match Self::from_str(local_cache!(request, content)) {
+        match Self::from_str(local_cache!(request, content)) {
             Ok(content) => Outcome::Success(content),
             Err(e) => Outcome::Failure((Status::BadRequest, e)),
-        };
-
-        content
+        }
     }
 }
