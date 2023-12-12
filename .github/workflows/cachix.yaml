@@ -1,5 +1,6 @@
 name: "Cachix build"
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'flake.nix'
