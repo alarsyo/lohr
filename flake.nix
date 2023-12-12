@@ -20,7 +20,7 @@
 
           src = ./.;
 
-          cargoHash = "sha256-15OVia/oQXAGvjHTPTceKottKgEgFJRfHbzWdzCtcjY=";
+          cargoHash = "sha256-daRn4E3ng2UVmkk7p5VFTmVugvnsNDUjMChUj7iSubE=";
 
           meta = with pkgs.lib; {
             description = "A Git mirroring tool";
