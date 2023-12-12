@@ -75,12 +75,12 @@ where
     async fn from_data(request: &'r Request<'_>, data: Data<'r>) -> Outcome<'r, Self> {
         let json_ct = ContentType::new("application", "json");
         if request.content_type() != Some(&json_ct) {
-            return Outcome::Failure((Status::BadRequest, anyhow!("wrong content type")));
+            return Outcome::Error((Status::BadRequest, anyhow!("wrong content type")));
         }
 
         let signatures = request.headers().get(X_GITEA_SIGNATURE).collect::<Vec<_>>();
         if signatures.len() != 1 {
-            return Outcome::Failure((
+            return Outcome::Error((
                 Status::BadRequest,
                 anyhow!("request header needs exactly one signature"),
             ));
@@ -91,24 +91,24 @@ where
             Ok(s) if s.is_complete() => s.into_inner(),
             Ok(_) => {
                 let eof = io::ErrorKind::UnexpectedEof;
-                return Outcome::Failure((
+                return Outcome::Error((
                     Status::PayloadTooLarge,
                     io::Error::new(eof, "data limit exceeded").into(),
                 ));
             }
-            Err(e) => return Outcome::Failure((Status::BadRequest, e.into())),
+            Err(e) => return Outcome::Error((Status::BadRequest, e.into())),
         };
 
         let signature = signatures[0];
         let secret = request.guard::<&State<Secret>>().await.unwrap();
 
         if !validate_signature(&secret.0, signature, &content) {
-            return Outcome::Failure((Status::BadRequest, anyhow!("couldn't verify signature")));
+            return Outcome::Error((Status::BadRequest, anyhow!("couldn't verify signature")));
         }
 
         match Self::from_str(local_cache!(request, content)) {
             Ok(content) => Outcome::Success(content),
-            Err(e) => Outcome::Failure((Status::BadRequest, e)),
+            Err(e) => Outcome::Error((Status::BadRequest, e)),
         }
     }
 }
