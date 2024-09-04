@@ -1,6 +1,6 @@
 [package]
 name = "lohr"
-version = "0.4.5"
+version = "0.4.6"
 authors = ["Antoine Martin <antoine@alarsyo.net>"]
 edition = "2018"
 license = "Apache-2.0 OR MIT"
